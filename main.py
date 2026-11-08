@@ -12,7 +12,7 @@ def check_inp():
         inp = input().strip()
         try:
             inp = int(inp)
-        except:
+        except ValueError:
             print("메뉴 선택은 숫자로 해야 합니다!")
             continue
 
@@ -30,7 +30,9 @@ def select_menu():
         exit()
     else:
         print(menu_list[inp])
-
-while Start:
-    print_menu()
-    select_menu()
+try:
+    while Start:
+        print_menu()
+        select_menu()
+except (KeyboardInterrupt, EOFError):
+    print("\n입력이 중단되어 프로그램을 종료합니다.") 
