@@ -9,15 +9,15 @@ def print_menu():
 def check_inp():
     while True:
         print("메뉴 선택 : ", end ='')
-        inp = input().replace(" ", "")
-        if not(inp.isdigit()):
+        inp = input().strip()
+        try:
+            inp = int(inp)
+        except:
             print("메뉴 선택은 숫자로 해야 합니다!")
             continue
 
-        inp = int(inp)
-
         if 1 <= inp <= 5:
-            return inp-1
+            return inp - 1
 
         else:
             print("메뉴 범위를 확인 하십시오!")
