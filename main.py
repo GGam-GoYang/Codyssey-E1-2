@@ -1,4 +1,5 @@
 import json
+from quiz_recovery import DEFAULT_QUIZZES
 
 class Quiz():
     def __init__(self, question, choices, answer, source):
@@ -17,7 +18,7 @@ class Quiz():
         print("==============================")
 
 
-    def check_answer(self, user_inp):
+    def check_answer(self, user_inp):                                   
         return user_inp == self.answer
 
 
@@ -29,15 +30,50 @@ class QuizGame():
         self.high_score = 0
         self.quiz_list = None
 
+    def recover_data(self):
+        self.high_score = 0
+        self.quiz_list = [Quiz(item["question"], item["choices"], item["answer"], item["source"]) for item in DEFAULT_QUIZZES]
+                    
     def load_json(self): # 데이터 로드 함수
         try:
             with open("state.json", "r", encoding="utf-8") as file:
-                data = json.load(file) 
+                data = json.load(file)  
+                if not isinstance(data, dict):
+                    raise ValueError("최상위 데이터는 딕셔너리여야 합니다.")
+
+                if "quizzes" not in data:
+                    raise ValueError("quizzes 항목이 없습니다.")
+
+                if not isinstance(data["quizzes"], list):
+                    raise ValueError("quizzes는 리스트여야 합니다.")
+
                 self.high_score = data.get("high_score", 0)
                 self.quiz_list = [Quiz(item["question"], item["choices"], item["answer"], item["source"]) for item in data["quizzes"]]
 
         except FileNotFoundError:
-            print("퀴즈 목록 파일이 없습니다. 새로 생성합니다.")
+            print("데이터 파일이 없습니다. 기본 데이터를 불러옵니다.")
+            
+            self.recover_data()
+            result = self.save_json()
+
+            if result is True:
+                print("state.json을 새로 저장했습니다!")
+            else:
+                print("데이터 저장에 실패했습니다! 아래 오류를 해결 후 재시도 바랍니다!")
+                print(f"오류 : \n{result}\n")
+                print("기본 퀴즈로 게임을 진행합니다. 저장에 실패하면 변경 내용이 재실행 후 유지되지 않을 수 있습니다!")
+
+        except (json.JSONDecodeError, UnicodeDecodeError) as error:
+            print(f"데이터 파일을 해석할 수 없습니다! : {error}")
+            self.recover_data()
+
+        except OSError as error:
+            print(f"데이터 파일을 읽을 수 없습니다! : {error}")
+            self.recover_data()
+
+        except ValueError as error:
+            print(f"데이터 구조가 올바르지 않습니다! : {error}")
+            self.recover_data()
 
     def convert_json(self):
         return {
