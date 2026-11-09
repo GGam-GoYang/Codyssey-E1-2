@@ -6,11 +6,24 @@ class Quiz():
         self.choices = choices 
         self.answer = answer
 
+    def display(self, idx):
+        print("======   문제    ======")
+        print(f"문제 {idx} : {self.question}", end="\n\n")
+    
+        print("====== 보기 목록 ======")
+        for choice in self.choices:
+            print(choice)
+        print("=======================")
+
+
+    def check_answer(self, user_inp):
+        return user_inp == self.answer
+
 
 class QuizGame():
     def __init__(self):
         self.menu_list = ["1. 퀴즈 풀기", "2. 퀴즈 추가", "3. 퀴즈 목록", "4. 점수 확인", "5. 퀴즈 종료"]
-        self.inp_type = {"Menu":"메뉴", "Choices":"보기", "Main" : "퀴즈"}
+        self.inp_type = {"Menu":"메뉴", "Choices":"보기", "Main" : "퀴즈 메뉴", "QuizList" : "퀴즈 목록"}
         self.select = [self.start_quiz, self.add_quiz, self.list_quiz, self.check_score, self.exit_quiz]
         self.high_score = 0
         self.score = 0
@@ -28,11 +41,11 @@ class QuizGame():
             
 
     def print_info(self, output="Main", choices=None):
-        print(f"====== {self.inp_type[output]} 메뉴 ======")
+        print(f"====== {self.inp_type[output]} ======")
         if output == "Main":
             for menu in self.menu_list:
                 print(menu)
-        elif output == "Choices":
+        elif output == "QuizList":
             for choice in choices:
                 print(choice)
         print("=======================")
@@ -65,20 +78,17 @@ class QuizGame():
         self.score = 0
         print("퀴즈를 시작합니다.")
 
-        for i, idx in enumerate(self.quiz_list):
-            print(f"문제 {i+1} : {idx.question}")
-            self.print_info("Choices", idx.choices)
+        for i, quiz in enumerate(self.quiz_list, start=1):
+            quiz.display(i)
 
+            user_input = self.check_inp("Choices")
 
-            while True:
-                self.choice = self.check_inp("Choices")
-                if self.choice == idx.answer:
-                    print("정답입니다!")
-                    self.score += 1
-                    break
-                else:
-                    print(f"오답입니다! 정답은 {idx.answer}번입니다.")
-                    break
+            if quiz.check_answer(user_input):
+                print("정답입니다!")
+                self.score += 1
+    
+            else:
+                print(f"오답입니다! 정답은 {quiz.answer}번입니다.")
                 
         print(f"최종 점수 : {self.score}")
         
