@@ -27,7 +27,6 @@ class QuizGame():
         self.inp_type = {"Menu":"메뉴", "Choices":"보기", "Main" : "퀴즈 메뉴", "QuizList" : "퀴즈 목록"}
         self.select = [self.start_quiz, self.add_quiz, self.list_quiz, self.check_score, self.exit_quiz]
         self.high_score = 0
-        self.score = 0
         self.quiz_list = None
 
     def load_json(self): # 데이터 로드 함수
@@ -40,7 +39,31 @@ class QuizGame():
         except FileNotFoundError:
             print("퀴즈 목록 파일이 없습니다. 새로 생성합니다.")
 
-    
+    def convert_json(self):
+        return {
+            "quizzes" : [
+                {"question" : quiz.question,
+                 "choices" : quiz.choices,
+                 "answer" : quiz.answer,
+                 "source" : quiz.source}
+                 for quiz in self.quiz_list
+            ],
+            "high_score" : self.high_score
+        }
+
+    def save_json(self):
+        try:
+            with open("state.json", "w", encoding="utf-8") as file:
+                json.dump(self.convert_json(), file, ensure_ascii=False, indent=4)
+            return True
+        except:
+            return False
+
+    def check_highscore(self, score):
+        if score > self.high_score:
+            self.high_score = score
+            return True
+        return False
 
     def print_info(self, output="Main"): # 목록 출력 함수, output 인자에 의해 메인 메뉴 출력, 퀴즈 목록 출력 으로 나뉨
         print(f"========= {self.inp_type[output]} ==========")
@@ -50,6 +73,10 @@ class QuizGame():
                 print(menu)
 
         elif output == "QuizList":
+            if not self.quiz_list:
+                print("등록된 퀴즈가 없습니다.")
+                return
+            
             for source, title in [("default", "========= 기본 퀴즈 =========="), ("user",    "====== 사용자 추가 퀴즈 ======")]:
                 idx = 1
                 quizzes = [quiz for quiz in (self.quiz_list) if quiz.source == source]
@@ -94,12 +121,13 @@ class QuizGame():
         self.select[inp]()
 
     def start_quiz(self): # 퀴즈 풀기 함수
-        self.score = 0
-        print("퀴즈를 시작합니다.")
+        score = 0
 
         if not self.quiz_list:
             print("등록된 퀴즈가 없습니다.\n등록 후 다시 진행 바랍니다.")
             return
+
+        print("퀴즈를 시작합니다.")
 
         for i, quiz in enumerate(self.quiz_list, start=1):
             quiz.display(i)
@@ -108,12 +136,15 @@ class QuizGame():
 
             if quiz.check_answer(user_input):
                 print("정답입니다!")
-                self.score += 1
+                score += 1
     
             else:
                 print(f"오답입니다! 정답은 {quiz.answer}번입니다.")
                 
-        print(f"최종 점수 : {self.score}")
+        print(f"최종 점수 : {score}")
+        if self.check_highscore(score):
+            print(f"축하합니다! 최고 점수 {score}점을 달성했습니다!")
+            self.save_json()
         
 
     def add_quiz(self): # 퀴즈 추가 함수
@@ -125,7 +156,7 @@ class QuizGame():
 
     def check_score(self): # 최고 점수 출력 함수
         print("점수를 확인합니다.")
-        print(f"당신의 최고 점수는 {self.high_score} 입니다!")
+        print(f"당신의 최고 점수는 {self.high_score}점 입니다!")
 
     def exit_quiz(self): # 종료 함수
         print("퀴즈를 종료합니다.")
