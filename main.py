@@ -52,12 +52,14 @@ class QuizGame():
         }
 
     def save_json(self):
+        data = self.convert_json()
+        
         try:
             with open("state.json", "w", encoding="utf-8") as file:
-                json.dump(self.convert_json(), file, ensure_ascii=False, indent=4)
+                json.dump(data, file, ensure_ascii=False, indent=4)
             return True
-        except:
-            return False
+        except OSError as error:
+            return error
 
     def check_highscore(self, score):
         if score > self.high_score:
@@ -144,8 +146,11 @@ class QuizGame():
         print(f"최종 점수 : {score}")
         if self.check_highscore(score):
             print(f"축하합니다! 최고 점수 {score}점을 달성했습니다!")
-            self.save_json()
-        
+        result = self.save_json()
+        if result is not True:
+            print("데이터 저장에 실패했습니다! 아래 오류를 해결 후 재시도 바랍니다!")
+            print(f"오류 : \n{result}")
+
 
     def add_quiz(self): # 퀴즈 추가 함수
         print("퀴즈를 추가합니다.")
