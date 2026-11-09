@@ -1,19 +1,20 @@
 import json
 
 class Quiz():
-    def __init__(self, question, choices, answer):
+    def __init__(self, question, choices, answer, source):
         self.question = question
         self.choices = choices 
         self.answer = answer
+        self.source = source
 
     def display(self, idx):
-        print("======   문제    ======")
+        print("============ 문제 ============")
         print(f"문제 {idx} : {self.question}", end="\n\n")
     
-        print("====== 보기 목록 ======")
+        print("========= 보기 목록 ==========")
         for choice in self.choices:
             print(choice)
-        print("=======================")
+        print("==============================")
 
 
     def check_answer(self, user_inp):
@@ -29,26 +30,39 @@ class QuizGame():
         self.score = 0
         self.quiz_list = None
 
-    def load_quiz(self):
+    def load_json(self):
         try:
             with open("state.json", "r", encoding="utf-8") as file:
                 data = json.load(file) 
                 self.high_score = data.get("high_score", 0)
-                self.quiz_list = [Quiz(item["question"], item["choices"], item["answer"]) for item in data["quizzes"]]
+                self.quiz_list = [Quiz(item["question"], item["choices"], item["answer"], item["source"]) for item in data["quizzes"]]
 
         except FileNotFoundError:
             print("퀴즈 목록 파일이 없습니다. 새로 생성합니다.")
-            
+
+    
 
     def print_info(self, output="Main"):
-        print(f"====== {self.inp_type[output]} ======")
+        print(f"========= {self.inp_type[output]} ==========")
         if output == "Main":
             for menu in self.menu_list:
                 print(menu)
         elif output == "QuizList":
-            for idx, quiz in enumerate(self.quiz_list, start=1):
-                print(f"{idx}번 : {quiz.question}")
-        print("=======================")
+            for source, title in [("default", "========= 기본 퀴즈 =========="), ("user",    "====== 사용자 추가 퀴즈 ======")]:
+                idx = 1
+                quizzes = [quiz for quiz in (self.quiz_list) if quiz.source == source]
+                if not quizzes:
+                    continue
+
+                print(title)
+                for quiz in quizzes:
+                    if quiz.source != source:
+                        continue
+
+                    print(f"{idx}번 : {quiz.question}")
+                    idx+=1
+                    
+        print("=" * 30)
 
     def check_inp(self, inp_type="Menu"):
         while True:
@@ -96,11 +110,13 @@ class QuizGame():
     def add_quiz(self):
         print("퀴즈를 추가합니다.")
 
+
     def list_quiz(self):
         self.print_info("QuizList")
 
     def check_score(self):
         print("점수를 확인합니다.")
+        print(f"당신의 최고 점수는 {self.high_score} 입니다!")
 
     def exit_quiz(self):
         print("퀴즈를 종료합니다.")
@@ -108,7 +124,7 @@ class QuizGame():
 
     def run(self):
         try:
-            self.load_quiz()
+            self.load_json()
             while True:
                 self.print_info()
                 self.select_menu()
