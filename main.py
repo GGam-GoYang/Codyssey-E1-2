@@ -22,7 +22,7 @@ class Quiz():
 
 
 class QuizGame():
-    def __init__(self):
+    def __init__(self): # QuizGame 초기화
         self.menu_list = ["1. 퀴즈 풀기", "2. 퀴즈 추가", "3. 퀴즈 목록", "4. 점수 확인", "5. 퀴즈 종료"]
         self.inp_type = {"Menu":"메뉴", "Choices":"보기", "Main" : "퀴즈 메뉴", "QuizList" : "퀴즈 목록"}
         self.select = [self.start_quiz, self.add_quiz, self.list_quiz, self.check_score, self.exit_quiz]
@@ -30,7 +30,7 @@ class QuizGame():
         self.score = 0
         self.quiz_list = None
 
-    def load_json(self):
+    def load_json(self): # 데이터 로드 함수
         try:
             with open("state.json", "r", encoding="utf-8") as file:
                 data = json.load(file) 
@@ -42,29 +42,34 @@ class QuizGame():
 
     
 
-    def print_info(self, output="Main"):
+    def print_info(self, output="Main"): # 목록 출력 함수, output 인자에 의해 메인 메뉴 출력, 퀴즈 목록 출력 으로 나뉨
         print(f"========= {self.inp_type[output]} ==========")
+
         if output == "Main":
             for menu in self.menu_list:
                 print(menu)
+
         elif output == "QuizList":
             for source, title in [("default", "========= 기본 퀴즈 =========="), ("user",    "====== 사용자 추가 퀴즈 ======")]:
                 idx = 1
                 quizzes = [quiz for quiz in (self.quiz_list) if quiz.source == source]
+
                 if not quizzes:
                     continue
 
                 print(title)
+
                 for quiz in quizzes:
                     if quiz.source != source:
                         continue
 
                     print(f"{idx}번 : {quiz.question}")
                     idx+=1
-                    
+
         print("=" * 30)
 
-    def check_inp(self, inp_type="Menu"):
+    def check_inp(self, inp_type="Menu"): # 사용자 입력값 검증 및 리턴
+
         while True:
             print(f"{self.inp_type[inp_type]} 선택 : ", end ='')
        
@@ -84,13 +89,17 @@ class QuizGame():
             else:
                 print(f"{self.inp_type[inp_type]} 선택 범위를 확인 하십시오!")
 
-    def select_menu(self):
+    def select_menu(self): # 사용자 입력값 메뉴 선택으로 치환
         inp = self.check_inp()
         self.select[inp]()
 
-    def start_quiz(self):
+    def start_quiz(self): # 퀴즈 풀기 함수
         self.score = 0
         print("퀴즈를 시작합니다.")
+
+        if not self.quiz_list:
+            print("등록된 퀴즈가 없습니다.\n등록 후 다시 진행 바랍니다.")
+            return
 
         for i, quiz in enumerate(self.quiz_list, start=1):
             quiz.display(i)
@@ -107,18 +116,18 @@ class QuizGame():
         print(f"최종 점수 : {self.score}")
         
 
-    def add_quiz(self):
+    def add_quiz(self): # 퀴즈 추가 함수
         print("퀴즈를 추가합니다.")
 
 
-    def list_quiz(self):
+    def list_quiz(self): # 퀴즈 목록 출력 함수(print_info 재사용)
         self.print_info("QuizList")
 
-    def check_score(self):
+    def check_score(self): # 최고 점수 출력 함수
         print("점수를 확인합니다.")
         print(f"당신의 최고 점수는 {self.high_score} 입니다!")
 
-    def exit_quiz(self):
+    def exit_quiz(self): # 종료 함수
         print("퀴즈를 종료합니다.")
         exit()
 
