@@ -40,14 +40,14 @@ class QuizGame():
             print("퀴즈 목록 파일이 없습니다. 새로 생성합니다.")
             
 
-    def print_info(self, output="Main", choices=None):
+    def print_info(self, output="Main"):
         print(f"====== {self.inp_type[output]} ======")
         if output == "Main":
             for menu in self.menu_list:
                 print(menu)
         elif output == "QuizList":
-            for choice in choices:
-                print(choice)
+            for idx, quiz in enumerate(self.quiz_list, start=1):
+                print(f"{idx}번 : {quiz.question}")
         print("=======================")
 
     def check_inp(self, inp_type="Menu"):
@@ -97,7 +97,7 @@ class QuizGame():
         print("퀴즈를 추가합니다.")
 
     def list_quiz(self):
-        print("퀴즈 목록을 확인합니다.")
+        self.print_info("QuizList")
 
     def check_score(self):
         print("점수를 확인합니다.")
