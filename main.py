@@ -37,7 +37,16 @@ class QuizGame():
     def load_json(self): # 데이터 로드 함수
         try:
             with open("state.json", "r", encoding="utf-8") as file:
-                data = json.load(file) 
+                data = json.load(file)  
+                if not isinstance(data, dict):
+                    raise ValueError("최상위 데이터는 딕셔너리여야 합니다.")
+
+                if "quizzes" not in data:
+                    raise ValueError("quizzes 항목이 없습니다.")
+
+                if not isinstance(data["quizzes"], list):
+                    raise ValueError("quizzes는 리스트여야 합니다.")
+
                 self.high_score = data.get("high_score", 0)
                 self.quiz_list = [Quiz(item["question"], item["choices"], item["answer"], item["source"]) for item in data["quizzes"]]
 
@@ -60,6 +69,10 @@ class QuizGame():
 
         except OSError as error:
             print(f"데이터 파일을 읽을 수 없습니다! : {error}")
+            self.recover_data()
+
+        except ValueError as error:
+            print(f"데이터 구조가 올바르지 않습니다! : {error}")
             self.recover_data()
 
     def convert_json(self):
