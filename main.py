@@ -68,7 +68,7 @@ class QuizGame():
 
         print("=" * 30)
 
-    def check_inp(self, inp_type="Menu"): # 사용자 입력값 검증 및 리턴
+    def check_inp(self, inp_type="Menu"): # 사용자 입력값 검증 및 리턴, inp_type 인자에 의해 메뉴 선택, 보기 선택으로 나뉨
 
         while True:
             print(f"{self.inp_type[inp_type]} 선택 : ", end ='')
