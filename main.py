@@ -25,7 +25,8 @@ class Quiz():
 class QuizGame():
     def __init__(self): # QuizGame 초기화
         self.menu_list = ["1. 퀴즈 풀기", "2. 퀴즈 추가", "3. 퀴즈 목록", "4. 점수 확인", "5. 퀴즈 종료"]
-        self.inp_type = {"Menu":"메뉴 선택", "Choices":"보기 선택", "Main" : "퀴즈 메뉴", "QuizList" : "퀴즈 목록", "AddQuiz" : "추가할 퀴즈 입력", "Choice_list" : "추가할 보기 입력", "Answer" : "정답 입력"}
+        self.inp_type = {"Menu":"메뉴 선택", "Choices":"보기 선택", "Main" : "퀴즈 메뉴", "QuizList" : "퀴즈 목록", 
+                         "AddQuiz" : "추가할 퀴즈 입력", "Choice_list" : "추가할 보기 입력", "Answer" : "정답 입력"}
         self.select = [self.start_quiz, self.add_quiz, self.list_quiz, self.check_score, self.exit_quiz]
         self.high_score = 0
         self.quiz_list = None
@@ -96,7 +97,7 @@ class QuizGame():
             return True
         except OSError as error:
             return error
-
+        
     def check_highscore(self, score):
         if score > self.high_score:
             self.high_score = score
@@ -157,7 +158,7 @@ class QuizGame():
 
         print("=" * 30)
 
-    def check_add(self):
+    def check_yes(self, idx=3):
         
         while True:
             res = input().strip().lower()
@@ -166,7 +167,7 @@ class QuizGame():
                 return 'y'
             elif res == 'n':
                 return 'n'
-            elif res == 'c':
+            elif res == 'c' and idx == 3:
                 return 'c'
             else:
                 print("잘못된 입력입니다. 다시 시도하십시오.")
@@ -194,8 +195,8 @@ class QuizGame():
 
             if inp_type == "AddQuiz":
                 print(f"입력한 퀴즈 : {inp}")
-                print("추가하시겠습니까? (y:추가 / n:다시입력 / c:취소) : ", end='')
-                if (res := self.check_add()) == 'y':
+                print("추가하시겠습니까? (y : 추가 / n : 다시입력 / c : 취소) : ", end='')
+                if (res := self.check_yes()) == 'y':
                     return inp
                 elif res == 'n':
                     continue
@@ -204,9 +205,9 @@ class QuizGame():
             
             elif inp_type == "Choice_list":
                 print(f"입력한 보기 :{inp}")
-                print("추가하시겠습니까? (y:추가 / n:다시입력 / c:취소) : ", end='')
+                print("추가하시겠습니까? (y : 추가 / n : 다시입력 / c : 취소) : ", end='')
 
-                if (res := self.check_add()) == 'y':
+                if (res := self.check_yes()) == 'y':
                     return inp
                 elif res == 'n':
                     continue
@@ -222,9 +223,9 @@ class QuizGame():
                     print("정답은 1~4 사이의 숫자여야 합니다!")
                     continue
                 
-                print("추가하시겠습니까? (y:추가 / n:다시입력 / c:취소) : ", end='')
+                print("추가하시겠습니까? (y : 추가 / n : 다시입력 / c : 취소) : ", end='')
 
-                if (res := self.check_add()) == 'y':
+                if (res := self.check_yes()) == 'y':
                     return inp
                 elif res == 'n':
                     continue
@@ -318,16 +319,37 @@ class QuizGame():
         print(f"당신의 최고 점수는 {self.high_score}점 입니다!")
 
     def exit_quiz(self): # 종료 함수
-        print("퀴즈를 종료합니다.")
+        result = self.save_json()
+        if result is not True:
+            print("데이터 저장에 실패했습니다!")
+            print(f"오류 : \n{result}")
+            
+            while True:
+                print("그래도 종료하시겠습니까? : (y : 종료 / n : 취소)")
+                res = self.check_yes(idx=2)
+                if res == 'y':
+                    print("프로그램을 종료합니다.")
+                    break
+                elif res == 'n':
+                    print("프로그램 종료를 취소합니다.")
+                    return 
+                
+                else:
+                    continue
+
+        else:
+            print("데이터가 성공적으로 저장되었습니다!\n프로그램을 종료합니다.")
         exit()
 
     def run(self):
-        try:
-            self.load_json()
-            while True:
+        
+        self.load_json()
+        while True:
+            try:
                 self.print_info()
                 self.select_menu()
-        except (KeyboardInterrupt, EOFError):
-            print("\n입력이 중단되어 프로그램을 종료합니다.")
+            except (KeyboardInterrupt, EOFError):
+                #print("\n입력이 중단되어 프로그램을 종료합니다.")
+                self.exit_quiz()
 
 QuizGame().run()
