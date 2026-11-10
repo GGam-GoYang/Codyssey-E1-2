@@ -3,6 +3,7 @@ from quiz import Quiz
 from quiz_recovery import DEFAULT_QUIZZES
 from input_utils import check_yes, input_text, input_number
 from output_utils import print_menu, print_quiz_list, print_added_quiz
+from validators import validate_state
 
 class QuizGame():
     def __init__(self):
@@ -21,18 +22,14 @@ class QuizGame():
         """저장 데이터를 불러오고, 처리 가능한 오류가 발생하면 기본 데이터로 복구합니다."""
         try:
             with open("state.json", "r", encoding="utf-8") as file:
-                data = json.load(file)  
-                if not isinstance(data, dict):
-                    raise ValueError("최상위 데이터는 딕셔너리여야 합니다.")
-
-                if "quizzes" not in data:
-                    raise ValueError("quizzes 항목이 없습니다.")
-
-                if not isinstance(data["quizzes"], list):
-                    raise ValueError("quizzes는 리스트여야 합니다.")
-
+                data = json.load(file)
+                  
+                validate_state(data)
+                
+                quizzes = [Quiz(item["question"], item["choices"], item["answer"], item["source"]) for item in data["quizzes"]]
+                
+                self.quiz_list = quizzes
                 self.high_score = data.get("high_score", 0)
-                self.quiz_list = [Quiz(item["question"], item["choices"], item["answer"], item["source"]) for item in data["quizzes"]]
 
         except FileNotFoundError:
             print("데이터 파일이 없습니다. 기본 데이터를 불러옵니다.")
