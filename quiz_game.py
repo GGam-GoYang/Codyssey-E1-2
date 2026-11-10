@@ -264,14 +264,18 @@ class QuizGame():
         if self.save_notice() is not True:
 
             print("그래도 종료하시겠습니까? : (y : 종료 / n : 취소)")
-            res = check_yes(allow_cancel=False)
+            try:
+                res = check_yes(allow_cancel=False)
 
+            except (KeyboardInterrupt, EOFError):
+                print("\n입력이 중단되었습니다. 저장하지 못한 사항은 유지되지 않습니다.")
+                raise SystemExit
             if res == 'n':
                 print("프로그램 종료를 취소합니다.")
                 return 
 
         print("프로그램을 종료합니다.")
-        exit()
+        raise SystemExit
 
     def run(self):
         """데이터를 불러오고 메뉴를 반복 실행하며 입력 중단 시 종료 처리를 호출합니다."""
