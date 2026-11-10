@@ -6,8 +6,6 @@ from input_utils import check_yes, input_text, input_number
 class QuizGame():
     def __init__(self): # QuizGame 초기화
         self.menu_list = ["1. 퀴즈 풀기", "2. 퀴즈 추가", "3. 퀴즈 목록", "4. 점수 확인", "5. 퀴즈 종료"]
-        self.inp_type = {"Menu":"메뉴 선택", "Choices":"보기 선택", "Main" : "퀴즈 메뉴", "QuizList" : "퀴즈 목록", 
-                         "AddQuiz" : "추가할 퀴즈 입력", "Choice_list" : "추가할 보기 입력", "Answer" : "정답 입력"}
         self.select = [self.start_quiz, self.add_quiz, self.list_quiz, self.check_score, self.exit_quiz]
         self.high_score = 0
         self.quiz_list = None
@@ -89,70 +87,60 @@ class QuizGame():
 
         return True
         
-
-    
-
     def check_highscore(self, score):
         if score > self.high_score:
             self.high_score = score
             return True
         return False
 
-    def print_info(self, output="Main", print_idx=0): # 목록 출력 함수, output 인자에 의해 메인 메뉴 출력, 퀴즈 목록 출력 으로 나뉨
-        print(f"========= {self.inp_type[output]} ==========")
+    def print_menu(self):
+        print("========= 퀴즈 메뉴 ==========")
+        for menu in self.menu_list:
+            print(menu)
+        print("=" * 30)
 
-        if output == "Main":
-            for menu in self.menu_list:
-                print(menu)
+    def print_quiz_list(self):
+        print("========= 퀴즈 목록 ==========")
 
-        elif output == "QuizList":
-            if not self.quiz_list:
-                print("등록된 퀴즈가 없습니다.")
-                return
-            
-            for source, title in [("default", "========= 기본 퀴즈 =========="), ("user", "====== 사용자 추가 퀴즈 ======")]:
-                idx = 1
-                quizzes = [quiz for quiz in (self.quiz_list) if quiz.source == source]
+        if not self.quiz_list:
+            print("등록된 퀴즈가 없습니다.")
+            return
 
-                if not quizzes:
-                    continue
-
-                print(title)
-
-                for quiz in quizzes:
-                    print(f"{idx}번 : {quiz.question}")
-                    idx+=1
-                
-        elif output == "AddQuiz":
-            if not self.quiz_list:
-                print("등록된 퀴즈가 없습니다.")
-                return
-
-            source, title = ("user", "====== 사용자 추가 퀴즈 ======")
-            idx = 1
+        for source, title in [("default", "========= 기본 퀴즈 =========="), ("user", "====== 사용자 추가 퀴즈 ======")]:
             quizzes = [quiz for quiz in (self.quiz_list) if quiz.source == source]
 
             if not quizzes:
-                print("등록된 퀴즈가 없습니다.")
-                return
+                continue
 
             print(title)
 
-            if print_idx == 0:
-                for quiz in quizzes:
-                    print(f"{idx}번 : {quiz.question}")
-                    idx+=1
-            else:
-                quiz = quizzes[-1]
-                print(f"{len(quizzes)}번 : {quiz.question}")
-                for i, choice in enumerate(quiz.choices, start=1):
-                    print(choice)
-                print(f"정답 : {quiz.answer}번")
-
+            for idx, quiz in enumerate(quizzes, start=1):
+                print(f"{idx}번 : {quiz.question}")
 
         print("=" * 30)
 
-    
+    def print_added_quiz(self):
+        print("========= 추가한 퀴즈 ==========")
+        if not self.quiz_list:
+            print("등록된 퀴즈가 없습니다.")
+            return
+
+        source, title = ("user", "====== 사용자 추가 퀴즈 ======")
+        quizzes = [quiz for quiz in (self.quiz_list) if quiz.source == source]
+
+        if not quizzes:
+            print("등록된 퀴즈가 없습니다.")
+            return
+
+        print(title)
+
+        quiz = quizzes[-1]
+        print(f"{len(quizzes)}번 : {quiz.question}")
+        for choice in quiz.choices:
+            print(choice)
+        print(f"정답 : {quiz.answer}번")
+
+        print("=" * 30)
 
     def check_inp(self, inp_type="Menu"): # 사용자 입력값 검증 및 리턴, inp_type 인자에 의해 메뉴 선택, 보기 선택으로 나뉨
         if inp_type == "AddQuiz":
@@ -228,17 +216,15 @@ class QuizGame():
         if (answer := self.check_inp("Answer")) is None:
             print("퀴즈 추가를 취소합니다.")
             return
-        
        
         self.quiz_list.append(Quiz(question, choices, answer, source))  
-        self.print_info("AddQuiz", 1)
+        self.print_added_quiz()
         
         if self.save_notice(success_notice=False):
             print("퀴즈가 성공적으로 추가되었습니다!")
 
-
-    def list_quiz(self): # 퀴즈 목록 출력 함수(print_info 재사용)
-        self.print_info("QuizList")
+    def list_quiz(self): 
+        self.print_quiz_list()
 
     def check_score(self): # 최고 점수 출력 함수
         print("점수를 확인합니다.")
@@ -270,7 +256,7 @@ class QuizGame():
         self.load_json()
         while True:
             try:
-                self.print_info()
+                self.print_menu()
                 self.select_menu()
             except (KeyboardInterrupt, EOFError):
                 #print("\n입력이 중단되어 프로그램을 종료합니다.")
