@@ -55,13 +55,11 @@ class QuizGame():
             print("데이터 파일이 없습니다. 기본 데이터를 불러옵니다.")
             
             self.recover_data()
-            result = self.save_json()
+            result = self.save_notice(success_notice=False)
 
             if result is True:
                 print("state.json을 새로 저장했습니다!")
             else:
-                print("데이터 저장에 실패했습니다! 아래 오류를 해결 후 재시도 바랍니다!")
-                print(f"오류 : \n{result}\n")
                 print("기본 퀴즈로 게임을 진행합니다. 저장에 실패하면 변경 내용이 재실행 후 유지되지 않을 수 있습니다!")
 
         except (json.JSONDecodeError, UnicodeDecodeError) as error:
@@ -97,6 +95,19 @@ class QuizGame():
             return True
         except OSError as error:
             return error
+        
+    def save_notice(self, success_notice=True):
+        result = self.save_json()
+        if result is not True:
+            print("데이터 저장에 실패했습니다! 아래 오류를 해결 후 재시도 바랍니다!")
+            print(f"오류 : \n{result}")
+            return False
+
+        elif success_notice:
+            print("데이터 저장에 성공했습니다!")
+
+        return True
+        
 
     def input_text(self, label):
         while True:
@@ -271,10 +282,8 @@ class QuizGame():
         print(f"최종 점수 : {score}")
         if self.check_highscore(score):
             print(f"축하합니다! 최고 점수 {score}점을 달성했습니다!")
-        result = self.save_json()
-        if result is not True:
-            print("데이터 저장에 실패했습니다! 아래 오류를 해결 후 재시도 바랍니다!")
-            print(f"오류 : \n{result}")
+
+        self.save_notice()
 
 
     def add_quiz(self): # 퀴즈 추가 함수
@@ -302,12 +311,10 @@ class QuizGame():
        
         self.quiz_list.append(Quiz(question, choices, answer, source))  
         self.print_info("AddQuiz", 1)
-        result = self.save_json()
-        if result is not True:
-            print("데이터 저장에 실패했습니다! 아래 오류를 해결 후 재시도 바랍니다!")
-            print(f"오류 : \n{result}")
-        else:
+        
+        if self.save_notice(success_notice=False):
             print("퀴즈가 성공적으로 추가되었습니다!")
+
 
     def list_quiz(self): # 퀴즈 목록 출력 함수(print_info 재사용)
         self.print_info("QuizList")
@@ -317,11 +324,9 @@ class QuizGame():
         print(f"당신의 최고 점수는 {self.high_score}점 입니다!")
 
     def exit_quiz(self): # 종료 함수
-        result = self.save_json()
+        result = self.save_notice()
         if result is not True:
-            print("데이터 저장에 실패했습니다!")
-            print(f"오류 : \n{result}")
-            
+        
             while True:
                 print("그래도 종료하시겠습니까? : (y : 종료 / n : 취소)")
                 res = self.check_yes(allow_cancel=False)
@@ -336,7 +341,7 @@ class QuizGame():
                     continue
 
         else:
-            print("데이터가 성공적으로 저장되었습니다!\n프로그램을 종료합니다.")
+            print("프로그램을 종료합니다.")
         exit()
 
     def run(self):
