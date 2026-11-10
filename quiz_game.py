@@ -4,6 +4,7 @@ from quiz_recovery import DEFAULT_QUIZZES
 from input_utils import check_yes, input_text, input_number
 from output_utils import print_menu, print_quiz_list, print_added_quiz
 from validators import validate_state
+from datetime import datetime
 
 class QuizGame():
     def __init__(self):
@@ -12,12 +13,39 @@ class QuizGame():
         self.select = [self.start_quiz, self.add_quiz, self.list_quiz, self.check_score, self.exit_quiz]
         self.high_score = 0
         self.quiz_list = None
+        self.save_blocked = False
 
     def recover_data(self):
         """최고 점수를 초기화하고 기본 퀴즈를 메모리에 복구합니다."""
         self.high_score = 0
         self.quiz_list = [Quiz(item["question"], item["choices"], item["answer"], item["source"]) for item in DEFAULT_QUIZZES]
-                    
+
+    def backup_data(self):
+        """JSON 데이터를 백업합니다.
+
+        Returns:
+            bool: 백업 성공 시 True, 실패 시 False.
+        """
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+        backup_name = f"state-backup-{timestamp}.json"
+
+        try:
+            with open("state.json", "rb") as source:
+                data = source.read()
+
+            with open(backup_name, "xb") as backup:
+                backup.write(data)
+
+        except OSError as error:
+            self.save_blocked = True
+            print(f"원본 데이터 백업에 실패했습니다: {error}")
+            print("원본 보호를 위해 이번 실행에서는 저장하지 않습니다.")
+            return False
+
+        print(f"원본 데이터를 백업했습니다: {backup_name}")
+        print("초기 데이터로 진행됩니다. 이후 퀴즈 추가·플레이 완료·종료 시 저장에 성공하면 state.json이 현재 게임 데이터로 덮어써집니다.")
+        return True
+
     def load_json(self):
         """저장 데이터를 불러오고, 처리 가능한 오류가 발생하면 기본 데이터로 복구합니다."""
         try:
@@ -44,14 +72,17 @@ class QuizGame():
 
         except (json.JSONDecodeError, UnicodeDecodeError) as error:
             print(f"데이터 파일을 해석할 수 없습니다! : {error}")
+            self.backup_data()
             self.recover_data()
 
         except OSError as error:
             print(f"데이터 파일을 읽을 수 없습니다! : {error}")
+            self.backup_data()
             self.recover_data()
 
         except ValueError as error:
             print(f"데이터 구조가 올바르지 않습니다! : {error}")
+            self.backup_data()
             self.recover_data()
 
     def convert_json(self):
@@ -75,8 +106,11 @@ class QuizGame():
         """현재 게임 상태를 state.json에 저장합니다.
 
         Returns:
-            bool | OSError: 성공하면 True, 쓰기 실패 시 오류 객체.
+            bool | OSError: 성공하면 True, 저장 차단 또는 쓰기 실패 시 오류 객체.
         """
+        if self.save_blocked:
+            return OSError("원본 백업 실패로 이번 실행의 저장이 차단되었습니다.")
+        
         data = self.convert_json()
         
         try:
