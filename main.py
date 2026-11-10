@@ -97,7 +97,60 @@ class QuizGame():
             return True
         except OSError as error:
             return error
-        
+
+    def input_text(self, label):
+        while True:
+            inp = input(f"{label} 입력 : ")
+
+            if inp.strip() == "":
+                print("빈 입력은 허용되지 않습니다!")
+                continue
+
+            print(f"입력한 {label} : {inp}")
+            print("추가 하시겠습니까? (y : 예, n : 다시 입력, c : 취소) : ", end="")
+
+            res = self.check_yes()
+
+            if res == 'y':
+                return inp
+            elif res == 'n':
+                continue
+            elif res == 'c':
+                return None
+
+    def input_number(self, label, minimum, maximum, confirm=False):
+        while True:
+
+            inp = input(f"{label} 입력 : ")
+
+            if inp.strip() == "":
+                print("빈 입력은 허용되지 않습니다!")
+                continue
+            
+            try:
+                inp = int(inp.strip())
+            
+            except ValueError:
+                print(f"{label}은 숫자로 해야 합니다!")
+                continue
+
+            if not minimum <= inp <= maximum:
+                print(f"{label}은 {minimum} ~ {maximum} 사이의 숫자여야 합니다!")
+                continue
+
+            if confirm:
+                print(f"입력한 {label} : {inp}")
+                                
+                print("추가하시겠습니까? (y : 추가 / n : 다시입력 / c : 취소) : ", end='')
+                res = self.check_yes()
+                
+                if res == 'n':
+                    continue
+                elif res == 'c':
+                    return None
+
+            return inp
+
     def check_highscore(self, score):
         if score > self.high_score:
             self.high_score = score
@@ -158,92 +211,37 @@ class QuizGame():
 
         print("=" * 30)
 
-    def check_yes(self, idx=3):
+    def check_yes(self, allow_cancel=True):
+        allowed = ('y', 'n', 'c') if allow_cancel else ('y', 'n')
         
         while True:
             res = input().strip().lower()
 
-            if res == 'y':
-                return 'y'
-            elif res == 'n':
-                return 'n'
-            elif res == 'c' and idx == 3:
-                return 'c'
-            else:
-                print("잘못된 입력입니다. 다시 시도하십시오.")
-                continue
-
-    def check_num(self, inp_type, inp):
-        try:
-            inp = int(inp.strip())
-            return inp
-        
-        except ValueError:
-            print(f"{self.inp_type[inp_type]}은 숫자로 해야 합니다!")
-            return False
+            if res in allowed:
+                return res
+            
+            print("잘못된 입력입니다. 다시 시도하십시오.")
 
     def check_inp(self, inp_type="Menu"): # 사용자 입력값 검증 및 리턴, inp_type 인자에 의해 메뉴 선택, 보기 선택으로 나뉨
+        if inp_type == "AddQuiz":
+            return self.input_text("퀴즈")
 
-        while True:
-            print(f"{self.inp_type[inp_type]} : ", end ='')
-       
-            inp = input()
+        elif inp_type == "Choice_list":
+            return self.input_text("보기")
 
-            if inp.strip() == "":
-                print("빈 입력은 허용되지 않습니다!")
-                continue
+        elif inp_type == "Menu":
+            return self.input_number("메뉴 선택", 1, 5) - 1
 
-            if inp_type == "AddQuiz":
-                print(f"입력한 퀴즈 : {inp}")
-                print("추가하시겠습니까? (y : 추가 / n : 다시입력 / c : 취소) : ", end='')
-                if (res := self.check_yes()) == 'y':
-                    return inp
-                elif res == 'n':
-                    continue
-                elif res == 'c':
-                    return None
-            
-            elif inp_type == "Choice_list":
-                print(f"입력한 보기 :{inp}")
-                print("추가하시겠습니까? (y : 추가 / n : 다시입력 / c : 취소) : ", end='')
+        elif inp_type == "Choices":
+            return self.input_number("보기 선택", 1, 4)
+        
+        elif inp_type == "Answer":
+            return self.input_number("정답", 1, 4, confirm=True)
 
-                if (res := self.check_yes()) == 'y':
-                    return inp
-                elif res == 'n':
-                    continue
-                elif res == 'c':
-                    return None
-            
-            elif inp_type == "Answer":
-                print(f"입력한 정답 : {inp}")
-                if (inp := self.check_num(inp_type, inp)) is False:
-                    continue
-
-                if not (1 <= inp <= 4):
-                    print("정답은 1~4 사이의 숫자여야 합니다!")
-                    continue
+        else:
+            raise ValueError(f"지원하지 않는 입력 종류입니다: {inp_type}")
                 
-                print("추가하시겠습니까? (y : 추가 / n : 다시입력 / c : 취소) : ", end='')
 
-                if (res := self.check_yes()) == 'y':
-                    return inp
-                elif res == 'n':
-                    continue
-                elif res == 'c':
-                    return None
-            
-            if (inp := self.check_num(inp_type, inp)) is False:
-                continue
-
-            if inp_type == "Menu" and 1 <= inp <= 5:
-                return inp - 1
-
-            elif inp_type == "Choices" and 1 <= inp <= 4:
-                return inp 
-
-            else:
-                print(f"{self.inp_type[inp_type]} 선택 범위를 확인 하십시오!")
-                continue 
 
     def select_menu(self): # 사용자 입력값 메뉴 선택으로 치환
         inp = self.check_inp()
@@ -326,7 +324,7 @@ class QuizGame():
             
             while True:
                 print("그래도 종료하시겠습니까? : (y : 종료 / n : 취소)")
-                res = self.check_yes(idx=2)
+                res = self.check_yes(allow_cancel=False)
                 if res == 'y':
                     print("프로그램을 종료합니다.")
                     break
