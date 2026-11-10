@@ -5,17 +5,20 @@ from input_utils import check_yes, input_text, input_number
 from output_utils import print_menu, print_quiz_list, print_added_quiz
 
 class QuizGame():
-    def __init__(self): # QuizGame 초기화
+    def __init__(self):
+        """메뉴와 기능을 연결하고 게임 상태를 초기화합니다."""
         self.menu_list = ["1. 퀴즈 풀기", "2. 퀴즈 추가", "3. 퀴즈 목록", "4. 점수 확인", "5. 퀴즈 종료"]
         self.select = [self.start_quiz, self.add_quiz, self.list_quiz, self.check_score, self.exit_quiz]
         self.high_score = 0
         self.quiz_list = None
 
     def recover_data(self):
+        """최고 점수를 초기화하고 기본 퀴즈를 메모리에 복구합니다."""
         self.high_score = 0
         self.quiz_list = [Quiz(item["question"], item["choices"], item["answer"], item["source"]) for item in DEFAULT_QUIZZES]
                     
-    def load_json(self): # 데이터 로드 함수
+    def load_json(self):
+        """저장 데이터를 불러오고, 처리 가능한 오류가 발생하면 기본 데이터로 복구합니다."""
         try:
             with open("state.json", "r", encoding="utf-8") as file:
                 data = json.load(file)  
@@ -55,6 +58,11 @@ class QuizGame():
             self.recover_data()
 
     def convert_json(self):
+        """현재 퀴즈와 최고 점수를 저장용 딕셔너리로 변환합니다.
+
+        Returns:
+            dict: quizzes와 high_score를 포함한 딕셔너리.
+        """
         return {
             "quizzes" : [
                 {"question" : quiz.question,
@@ -67,6 +75,11 @@ class QuizGame():
         }
 
     def save_json(self):
+        """현재 게임 상태를 state.json에 저장합니다.
+
+        Returns:
+            bool | OSError: 성공하면 True, 쓰기 실패 시 오류 객체.
+        """
         data = self.convert_json()
         
         try:
@@ -77,6 +90,14 @@ class QuizGame():
             return error
         
     def save_notice(self, success_notice=True):
+        """게임 상태를 저장하고 성공 또는 실패를 안내합니다.
+
+        Args:
+            success_notice (bool): 성공 안내 출력 여부. 기본값은 True.
+
+        Returns:
+            bool: 저장에 성공하면 True, 실패하면 False.
+        """
         result = self.save_json()
         if result is not True:
             print("데이터 저장에 실패했습니다! 아래 오류를 해결 후 재시도 바랍니다!")
@@ -89,12 +110,29 @@ class QuizGame():
         return True
         
     def check_highscore(self, score):
+        """현재 점수가 최고 점수보다 높으면 최고 점수를 갱신합니다.
+
+        Args:
+            score (int): 이번 게임에서 맞힌 문제 수.
+
+        Returns:
+            bool: 최고 점수를 갱신했으면 True, 아니면 False.
+        """
         if score > self.high_score:
             self.high_score = score
             return True
         return False
 
-    def check_inp(self, inp_type="Menu"): # 사용자 입력값 검증 및 리턴, inp_type 인자에 의해 메뉴 선택, 보기 선택으로 나뉨
+    def check_inp(self, inp_type="Menu"):
+        """입력 종류에 맞게 사용자 입력을 검증하여 반환합니다.
+
+        Args:
+            inp_type (str): Menu, Choices, AddQuiz, Choice_list, Answer 중 하나.
+
+        Returns:
+            int | str | None: 메뉴 인덱스(0 ~ 4), 보기·정답 번호(1 ~ 4),
+                문제·보기 문자열 또는 등록 취소 시 None.
+        """
         if inp_type == "AddQuiz":
             return input_text("퀴즈")
 
@@ -112,14 +150,14 @@ class QuizGame():
 
         else:
             raise ValueError(f"지원하지 않는 입력 종류입니다: {inp_type}")
-                
 
-
-    def select_menu(self): # 사용자 입력값 메뉴 선택으로 치환
+    def select_menu(self):
+        """메뉴를 선택받아 연결된 기능을 실행합니다."""
         inp = self.check_inp()
         self.select[inp]()
 
-    def start_quiz(self): # 퀴즈 풀기 함수
+    def start_quiz(self):
+        """퀴즈를 진행하고 완료 시 최고 점수를 갱신하여 저장을 시도합니다."""
         score = 0
 
         if not self.quiz_list:
@@ -136,7 +174,6 @@ class QuizGame():
             if quiz.check_answer(user_input):
                 print("정답입니다!")
                 score += 1
-    
             else:
                 print(f"오답입니다! 정답은 {quiz.answer}번입니다.")
                 
@@ -146,10 +183,13 @@ class QuizGame():
 
         self.save_notice(success_notice=False)
 
+    def add_quiz(self):
+        """사용자 퀴즈를 입력받아 메모리에 추가하고 저장을 시도합니다.
 
-    def add_quiz(self): # 퀴즈 추가 함수
+        Returns:
+            None: 등록 처리를 마치거나 등록을 취소한 경우.
+        """
         choices = []
-        answer = None
         source = "user"
 
         print("퀴즈를 추가합니다.")
@@ -175,37 +215,37 @@ class QuizGame():
         if self.save_notice(success_notice=False):
             print("퀴즈가 성공적으로 추가되었습니다!")
 
-    def list_quiz(self): 
+    def list_quiz(self):
+        """기본 퀴즈와 사용자 퀴즈의 목록을 출력합니다."""
         print_quiz_list(self.quiz_list)
 
-    def check_score(self): # 최고 점수 출력 함수
+    def check_score(self):
+        """현재 최고 점수를 출력합니다."""
         print("점수를 확인합니다.")
         print(f"당신의 최고 점수는 {self.high_score}점 입니다!")
 
-    def exit_quiz(self): # 종료 함수
-        result = self.save_notice()
-        if result is not True:
-        
-            while True:
-                print("그래도 종료하시겠습니까? : (y : 종료 / n : 취소)")
-                res = check_yes(allow_cancel=False)
-                if res == 'y':
-                    print("프로그램을 종료합니다.")
-                    break
-                elif res == 'n':
-                    print("프로그램 종료를 취소합니다.")
-                    return 
-                
-                else:
-                    continue
+    def exit_quiz(self):
+        """저장을 시도한 뒤 종료하며, 저장 실패 시 종료 여부를 확인합니다.
 
-        else:
-            print("프로그램을 종료합니다.")
+        Returns:
+            None: 종료를 취소한 경우에만 반환하며, 그 외에는 프로그램 종료.
+        """
+        if self.save_notice() is not True:
+
+            print("그래도 종료하시겠습니까? : (y : 종료 / n : 취소)")
+            res = check_yes(allow_cancel=False)
+
+            if res == 'n':
+                print("프로그램 종료를 취소합니다.")
+                return 
+
+        print("프로그램을 종료합니다.")
         exit()
 
     def run(self):
-
+        """데이터를 불러오고 메뉴를 반복 실행하며 입력 중단 시 종료 처리를 호출합니다."""
         self.load_json()
+        
         while True:
             try:
                 print_menu(self.menu_list)
