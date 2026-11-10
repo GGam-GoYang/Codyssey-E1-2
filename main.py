@@ -168,6 +168,10 @@ class QuizGame():
             return True
         return False
 
+    def print_quiz(self, quizzes):
+        for idx, quiz in enumerate(quizzes, start=1):
+            print(f"{idx}번 : {quiz.question}")
+
     def print_info(self, output="Main", print_idx=0): # 목록 출력 함수, output 인자에 의해 메인 메뉴 출력, 퀴즈 목록 출력 으로 나뉨
         print(f"========= {self.inp_type[output]} ==========")
 
@@ -181,17 +185,13 @@ class QuizGame():
                 return
             
             for source, title in [("default", "========= 기본 퀴즈 =========="), ("user", "====== 사용자 추가 퀴즈 ======")]:
-                idx = 1
                 quizzes = [quiz for quiz in (self.quiz_list) if quiz.source == source]
 
                 if not quizzes:
                     continue
 
                 print(title)
-
-                for quiz in quizzes:
-                    print(f"{idx}번 : {quiz.question}")
-                    idx+=1
+                self.print_quiz(quizzes)
                 
         elif output == "AddQuiz":
             if not self.quiz_list:
@@ -199,7 +199,6 @@ class QuizGame():
                 return
 
             source, title = ("user", "====== 사용자 추가 퀴즈 ======")
-            idx = 1
             quizzes = [quiz for quiz in (self.quiz_list) if quiz.source == source]
 
             if not quizzes:
@@ -209,13 +208,11 @@ class QuizGame():
             print(title)
 
             if print_idx == 0:
-                for quiz in quizzes:
-                    print(f"{idx}번 : {quiz.question}")
-                    idx+=1
+                self.print_quiz(quizzes)
             else:
                 quiz = quizzes[-1]
                 print(f"{len(quizzes)}번 : {quiz.question}")
-                for i, choice in enumerate(quiz.choices, start=1):
+                for choice in quiz.choices:
                     print(choice)
                 print(f"정답 : {quiz.answer}번")
 
