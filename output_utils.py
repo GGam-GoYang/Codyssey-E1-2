@@ -42,7 +42,6 @@ def print_added_quiz(quiz_list):
         quiz_list (list[Quiz] | None): 사용자 퀴즈를 찾을 전체 목록.
             사용자 퀴즈가 없으면 등록된 퀴즈가 없음을 안내합니다.
     """
-    print("========= 추가한 퀴즈 ==========")
     if not quiz_list:
         print("등록된 퀴즈가 없습니다.")
         return
@@ -57,7 +56,7 @@ def print_added_quiz(quiz_list):
     print(title)
 
     quiz = quizzes[-1]
-    print(f"{len(quizzes)}번 : {quiz.question}")
+    print(f"문제 : {quiz.question}")
     for choice in quiz.choices:
         print(choice)
     print(f"정답 : {quiz.answer}번")
