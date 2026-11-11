@@ -5,7 +5,7 @@ def check_yes(allow_cancel=True):
         allow_cancel (bool): 'c' 허용 여부. 기본값은 True.
 
     Returns:
-        str: 'y', 'n' 또는 취소가 허용된 경우 'c'.
+        str: 'y', 'n', 'c' 또는 'y', 'n' (allow_cancel==False).
     """
     allowed = ('y', 'n', 'c') if allow_cancel else ('y', 'n')
     
