@@ -38,6 +38,9 @@ def validate_state(data):
     if not isinstance(data, dict):
         raise ValueError("최상위 데이터는 딕셔너리여야 합니다.")
 
+    if "has_played" in data and type(data["has_played"]) is not bool:
+        raise ValueError("has_played는 Boolean 이어야 합니다.")
+
     quizzes = data.get("quizzes")
     if not isinstance(quizzes, list):
         raise ValueError("quizzes는 리스트여야 합니다.")

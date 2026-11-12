@@ -12,12 +12,14 @@ class QuizGame():
         """메뉴와 기능을 연결하고 게임 상태를 초기화합니다."""
         self.menu_list = ["1. 퀴즈 풀기", "2. 퀴즈 추가", "3. 퀴즈 목록", "4. 점수 확인", "5. 퀴즈 종료"]
         self.select = [self.start_quiz, self.add_quiz, self.list_quiz, self.check_score, self.exit_quiz]
+        self.has_played = False
         self.high_score = 0
         self.quiz_list = None
         self.save_blocked = False
 
     def recover_data(self):
         """최고 점수를 초기화하고 기본 퀴즈를 메모리에 복구합니다."""
+        self.has_played = False
         self.high_score = 0
         self.quiz_list = [Quiz(item["question"], item["choices"], item["answer"], item["source"]) for item in DEFAULT_QUIZZES]
 
@@ -55,9 +57,9 @@ class QuizGame():
                   
                 validate_state(data)
                 
-                quizzes = [Quiz(item["question"], item["choices"], item["answer"], item["source"]) for item in data["quizzes"]]
-                
+                quizzes = [Quiz(item["question"], item["choices"], item["answer"], item["source"]) for item in data["quizzes"]] 
                 self.quiz_list = quizzes
+                self.has_played = data.get("has_played", False)
                 self.high_score = data.get("high_score", 0)
 
         except FileNotFoundError:
@@ -90,9 +92,10 @@ class QuizGame():
         """현재 퀴즈와 최고 점수를 저장용 딕셔너리로 변환합니다.
 
         Returns:
-            dict: quizzes와 high_score를 포함한 딕셔너리.
+            dict: has_played, quizzes, high_score를 포함한 딕셔너리.
         """
         return {
+            "has_played" : self.has_played,
             "quizzes" : [
                 {"question" : quiz.question,
                  "choices" : quiz.choices,
@@ -215,6 +218,7 @@ class QuizGame():
         if self.check_highscore(score):
             print(f"축하합니다! 최고 점수 {score}점을 달성했습니다!")
 
+        self.has_played = True
         self.save_notice(success_notice=False)
 
     def add_quiz(self):
@@ -254,7 +258,15 @@ class QuizGame():
         print_quiz_list(self.quiz_list)
 
     def check_score(self):
-        """현재 최고 점수를 출력합니다."""
+        """현재 최고 점수를 출력합니다.
+        
+        Returns:
+            None: 플레이 기록이 없는 경우.
+        """
+        if not self.has_played:
+            print("아직 퀴즈를 완료한 기록이 없습니다.")
+            return
+        
         print("점수를 확인합니다.")
         print(f"당신의 최고 점수는 {self.high_score}점 입니다!")
 
