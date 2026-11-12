@@ -1,3 +1,4 @@
+import os
 import json
 from quiz import Quiz
 from quiz_recovery import DEFAULT_QUIZZES
@@ -106,7 +107,7 @@ class QuizGame():
         """현재 게임 상태를 state.json에 저장합니다.
 
         Returns:
-            bool | OSError: 성공하면 True, 저장 차단 또는 쓰기 실패 시 오류 객체.
+            bool | OSError: 성공하면 True, 저장 차단 또는 쓰기∙교체 실패 시 오류 객체.
         """
         if self.save_blocked:
             return OSError("원본 백업 실패로 이번 실행의 저장이 차단되었습니다.")
@@ -114,9 +115,11 @@ class QuizGame():
         data = self.convert_json()
         
         try:
-            with open("state.json", "w", encoding="utf-8") as file:
+            with open("state.json.tmp", "w", encoding="utf-8") as file:
                 json.dump(data, file, ensure_ascii=False, indent=4)
+            os.replace("state.json.tmp", "state.json")
             return True
+        
         except OSError as error:
             return error
         
