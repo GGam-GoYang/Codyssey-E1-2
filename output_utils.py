@@ -39,20 +39,14 @@ def print_added_quiz(added_quiz):
     """마지막 사용자 퀴즈의 번호, 문제, 보기와 정답을 출력합니다.
 
     Args:
-        added_quiz (list[Quiz] | None): 추가한 사용자 퀴즈.
-            사용자 퀴즈가 없으면 등록된 퀴즈가 없음을 안내합니다.
+        added_quiz (Quiz): 새로 추가한 사용자 퀴즈 객체.
     """
-    if not added_quiz:
-        print("등록된 퀴즈가 없습니다.")
-        return
-
-    source, title = ("user", "====== 사용자 추가 퀴즈 ======")
-
-    print(title)
-
+    print("====== 사용자 추가 퀴즈 ======")
     print(f"문제 : {added_quiz.question}")
+
     for choice in added_quiz.choices:
         print(choice)
+
     print(f"정답 : {added_quiz.answer}번")
 
     print("=" * 30)
