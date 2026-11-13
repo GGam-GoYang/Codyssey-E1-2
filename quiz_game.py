@@ -160,37 +160,9 @@ class QuizGame():
             return True
         return False
 
-    def check_inp(self, inp_type="Menu"):
-        """입력 종류에 맞게 사용자 입력을 검증하여 반환합니다.
-
-        Args:
-            inp_type (str): Menu, Choices, AddQuiz, Choice_list, Answer 중 하나.
-
-        Returns:
-            int | str | None: 메뉴 인덱스(0 ~ 4), 보기·정답 번호(1 ~ 4),
-                문제·보기 문자열 또는 등록 취소 시 None.
-        """
-        if inp_type == "AddQuiz":
-            return input_text("퀴즈")
-
-        elif inp_type == "Choice_list":
-            return input_text("보기")
-
-        elif inp_type == "Menu":
-            return input_number("메뉴 선택", 1, 5) - 1
-
-        elif inp_type == "Choices":
-            return input_number("보기 선택", 1, 4)
-        
-        elif inp_type == "Answer":
-            return input_number("정답", 1, 4, confirm=True)
-
-        else:
-            raise ValueError(f"지원하지 않는 입력 종류입니다: {inp_type}")
-
     def select_menu(self):
         """메뉴를 선택받아 연결된 기능을 실행합니다."""
-        inp = self.check_inp()
+        inp = input_number("메뉴 선택", 1, 5) - 1
         self.select[inp]()
 
     def start_quiz(self):
@@ -206,7 +178,7 @@ class QuizGame():
         for i, quiz in enumerate(self.quiz_list, start=1):
             quiz.display(i)
 
-            user_input = self.check_inp("Choices")
+            user_input = input_number("보기 선택", 1, 4)
 
             if quiz.check_answer(user_input):
                 print("정답입니다!")
@@ -231,19 +203,19 @@ class QuizGame():
         source = "user"
 
         print("퀴즈를 추가합니다.")
-        if (question := self.check_inp("AddQuiz")) is None:
+        if (question := input_text("퀴즈")) is None:
             print("퀴즈 추가를 취소합니다.")
             return
         
         for i in range(4):
             print(f"{i+1}번째 보기")
-            if (choice := self.check_inp('Choice_list')) is None:
+            if (choice := input_text("보기")) is None:
                 print("퀴즈 추가를 취소합니다.")
                 return
             
             choices.append(f"{i+1}번 : {choice}")
 
-        if (answer := self.check_inp("Answer")) is None:
+        if (answer := input_number("정답", 1, 4, confirm=True)) is None:
             print("퀴즈 추가를 취소합니다.")
             return
         added_quiz = Quiz(question, choices, answer, source)
