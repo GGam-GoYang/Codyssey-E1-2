@@ -246,9 +246,10 @@ class QuizGame():
         if (answer := self.check_inp("Answer")) is None:
             print("퀴즈 추가를 취소합니다.")
             return
-       
-        self.quiz_list.append(Quiz(question, choices, answer, source))  
-        print_added_quiz(self.quiz_list)
+        added_quiz = Quiz(question, choices, answer, source)
+
+        self.quiz_list.append(added_quiz)  
+        print_added_quiz(added_quiz)
         
         if self.save_notice(success_notice=False):
             print("퀴즈가 성공적으로 추가되었습니다!")

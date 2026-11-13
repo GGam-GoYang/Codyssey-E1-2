@@ -35,30 +35,24 @@ def print_quiz_list(quiz_list):
 
     print("=" * 30)
 
-def print_added_quiz(quiz_list):
+def print_added_quiz(added_quiz):
     """마지막 사용자 퀴즈의 번호, 문제, 보기와 정답을 출력합니다.
 
     Args:
-        quiz_list (list[Quiz] | None): 사용자 퀴즈를 찾을 전체 목록.
+        added_quiz (list[Quiz] | None): 추가한 사용자 퀴즈.
             사용자 퀴즈가 없으면 등록된 퀴즈가 없음을 안내합니다.
     """
-    if not quiz_list:
+    if not added_quiz:
         print("등록된 퀴즈가 없습니다.")
         return
 
     source, title = ("user", "====== 사용자 추가 퀴즈 ======")
-    quizzes = [quiz for quiz in (quiz_list) if quiz.source == source]
-
-    if not quizzes:
-        print("등록된 퀴즈가 없습니다.")
-        return
 
     print(title)
 
-    quiz = quizzes[-1]
-    print(f"문제 : {quiz.question}")
-    for choice in quiz.choices:
+    print(f"문제 : {added_quiz.question}")
+    for choice in added_quiz.choices:
         print(choice)
-    print(f"정답 : {quiz.answer}번")
+    print(f"정답 : {added_quiz.answer}번")
 
     print("=" * 30)
