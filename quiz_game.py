@@ -1,38 +1,66 @@
+import os
 import json
 from quiz import Quiz
 from quiz_recovery import DEFAULT_QUIZZES
 from input_utils import check_yes, input_text, input_number
 from output_utils import print_menu, print_quiz_list, print_added_quiz
+from validators import validate_state
+from datetime import datetime
 
 class QuizGame():
     def __init__(self):
         """메뉴와 기능을 연결하고 게임 상태를 초기화합니다."""
         self.menu_list = ["1. 퀴즈 풀기", "2. 퀴즈 추가", "3. 퀴즈 목록", "4. 점수 확인", "5. 퀴즈 종료"]
         self.select = [self.start_quiz, self.add_quiz, self.list_quiz, self.check_score, self.exit_quiz]
+        self.has_played = False
         self.high_score = 0
         self.quiz_list = None
+        self.save_blocked = False
 
     def recover_data(self):
         """최고 점수를 초기화하고 기본 퀴즈를 메모리에 복구합니다."""
+        self.has_played = False
         self.high_score = 0
         self.quiz_list = [Quiz.from_dict(item) for item in DEFAULT_QUIZZES]
-                    
+
+    def backup_data(self):
+        """JSON 데이터를 백업합니다.
+
+        Returns:
+            bool: 백업 성공 시 True, 실패 시 False.
+        """
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+        backup_name = f"state-backup-{timestamp}.json"
+
+        try:
+            with open("state.json", "rb") as source:
+                data = source.read()
+
+            with open(backup_name, "xb") as backup:
+                backup.write(data)
+
+        except OSError as error:
+            self.save_blocked = True
+            print(f"원본 데이터 백업에 실패했습니다: {error}")
+            print("원본 보호를 위해 이번 실행에서는 저장하지 않습니다.")
+            return False
+
+        print(f"원본 데이터를 백업했습니다: {backup_name}")
+        print("초기 데이터로 진행됩니다. 이후 퀴즈 추가·플레이 완료·종료 시 저장에 성공하면 state.json이 현재 게임 데이터로 덮어써집니다.")
+        return True
+
     def load_json(self):
         """저장 데이터를 불러오고, 처리 가능한 오류가 발생하면 기본 데이터로 복구합니다."""
         try:
             with open("state.json", "r", encoding="utf-8") as file:
-                data = json.load(file)  
-                if not isinstance(data, dict):
-                    raise ValueError("최상위 데이터는 딕셔너리여야 합니다.")
-
-                if "quizzes" not in data:
-                    raise ValueError("quizzes 항목이 없습니다.")
-
-                if not isinstance(data["quizzes"], list):
-                    raise ValueError("quizzes는 리스트여야 합니다.")
-
+                data = json.load(file)
+                  
+                validate_state(data)
+                
+                quizzes = [Quiz.from_dict(item) for item in data["quizzes"]] 
+                self.quiz_list = quizzes
+                self.has_played = data.get("has_played", False)
                 self.high_score = data.get("high_score", 0)
-                self.quiz_list = [Quiz.from_dict(item) for item in data["quizzes"]]
 
         except FileNotFoundError:
             print("데이터 파일이 없습니다. 기본 데이터를 불러옵니다.")
@@ -47,23 +75,27 @@ class QuizGame():
 
         except (json.JSONDecodeError, UnicodeDecodeError) as error:
             print(f"데이터 파일을 해석할 수 없습니다! : {error}")
+            self.backup_data()
             self.recover_data()
 
         except OSError as error:
             print(f"데이터 파일을 읽을 수 없습니다! : {error}")
+            self.backup_data()
             self.recover_data()
 
         except ValueError as error:
             print(f"데이터 구조가 올바르지 않습니다! : {error}")
+            self.backup_data()
             self.recover_data()
 
     def convert_json(self):
         """현재 퀴즈와 최고 점수를 저장용 딕셔너리로 변환합니다.
 
         Returns:
-            dict: quizzes와 high_score를 포함한 딕셔너리.
+            dict: has_played, quizzes, high_score를 포함한 딕셔너리.
         """
         return {
+            "has_played" : self.has_played,
             "quizzes" : [
                 {"question" : quiz.question,
                  "choices" : quiz.choices,
@@ -78,14 +110,19 @@ class QuizGame():
         """현재 게임 상태를 state.json에 저장합니다.
 
         Returns:
-            bool | OSError: 성공하면 True, 쓰기 실패 시 오류 객체.
+            bool | OSError: 성공하면 True, 저장 차단 또는 쓰기∙교체 실패 시 오류 객체.
         """
+        if self.save_blocked:
+            return OSError("원본 백업 실패로 이번 실행의 저장이 차단되었습니다.")
+        
         data = self.convert_json()
         
         try:
-            with open("state.json", "w", encoding="utf-8") as file:
+            with open("state.json.tmp", "w", encoding="utf-8") as file:
                 json.dump(data, file, ensure_ascii=False, indent=4)
+            os.replace("state.json.tmp", "state.json")
             return True
+        
         except OSError as error:
             return error
         
@@ -123,37 +160,9 @@ class QuizGame():
             return True
         return False
 
-    def check_inp(self, inp_type="Menu"):
-        """입력 종류에 맞게 사용자 입력을 검증하여 반환합니다.
-
-        Args:
-            inp_type (str): Menu, Choices, AddQuiz, Choice_list, Answer 중 하나.
-
-        Returns:
-            int | str | None: 메뉴 인덱스(0 ~ 4), 보기·정답 번호(1 ~ 4),
-                문제·보기 문자열 또는 등록 취소 시 None.
-        """
-        if inp_type == "AddQuiz":
-            return input_text("퀴즈")
-
-        elif inp_type == "Choice_list":
-            return input_text("보기")
-
-        elif inp_type == "Menu":
-            return input_number("메뉴 선택", 1, 5) - 1
-
-        elif inp_type == "Choices":
-            return input_number("보기 선택", 1, 4)
-        
-        elif inp_type == "Answer":
-            return input_number("정답", 1, 4, confirm=True)
-
-        else:
-            raise ValueError(f"지원하지 않는 입력 종류입니다: {inp_type}")
-
     def select_menu(self):
         """메뉴를 선택받아 연결된 기능을 실행합니다."""
-        inp = self.check_inp()
+        inp = input_number("메뉴 선택", 1, 5) - 1
         self.select[inp]()
 
     def start_quiz(self):
@@ -169,7 +178,7 @@ class QuizGame():
         for i, quiz in enumerate(self.quiz_list, start=1):
             quiz.display(i)
 
-            user_input = self.check_inp("Choices")
+            user_input = input_number("보기 선택", 1, 4)
 
             if quiz.check_answer(user_input):
                 print("정답입니다!")
@@ -181,6 +190,7 @@ class QuizGame():
         if self.check_highscore(score):
             print(f"축하합니다! 최고 점수 {score}점을 달성했습니다!")
 
+        self.has_played = True
         self.save_notice(success_notice=False)
 
     def add_quiz(self):
@@ -193,24 +203,25 @@ class QuizGame():
         source = "user"
 
         print("퀴즈를 추가합니다.")
-        if (question := self.check_inp("AddQuiz")) is None:
+        if (question := input_text("퀴즈")) is None:
             print("퀴즈 추가를 취소합니다.")
             return
         
         for i in range(4):
             print(f"{i+1}번째 보기")
-            if (choice := self.check_inp('Choice_list')) is None:
+            if (choice := input_text("보기")) is None:
                 print("퀴즈 추가를 취소합니다.")
                 return
             
             choices.append(f"{i+1}번 : {choice}")
 
-        if (answer := self.check_inp("Answer")) is None:
+        if (answer := input_number("정답", 1, 4, confirm=True)) is None:
             print("퀴즈 추가를 취소합니다.")
             return
-       
-        self.quiz_list.append(Quiz(question, choices, answer, source))  
-        print_added_quiz(self.quiz_list)
+        added_quiz = Quiz(question, choices, answer, source)
+
+        self.quiz_list.append(added_quiz)  
+        print_added_quiz(added_quiz)
         
         if self.save_notice(success_notice=False):
             print("퀴즈가 성공적으로 추가되었습니다!")
@@ -220,7 +231,15 @@ class QuizGame():
         print_quiz_list(self.quiz_list)
 
     def check_score(self):
-        """현재 최고 점수를 출력합니다."""
+        """현재 최고 점수를 출력합니다.
+        
+        Returns:
+            None: 플레이 기록이 없는 경우.
+        """
+        if not self.has_played:
+            print("아직 퀴즈를 완료한 기록이 없습니다.")
+            return
+        
         print("점수를 확인합니다.")
         print(f"당신의 최고 점수는 {self.high_score}점 입니다!")
 
@@ -233,14 +252,18 @@ class QuizGame():
         if self.save_notice() is not True:
 
             print("그래도 종료하시겠습니까? : (y : 종료 / n : 취소)")
-            res = check_yes(allow_cancel=False)
+            try:
+                res = check_yes(allow_cancel=False)
 
+            except (KeyboardInterrupt, EOFError):
+                print("\n입력이 중단되었습니다. 저장하지 못한 사항은 유지되지 않습니다.")
+                raise SystemExit
             if res == 'n':
                 print("프로그램 종료를 취소합니다.")
                 return 
 
         print("프로그램을 종료합니다.")
-        exit()
+        raise SystemExit
 
     def run(self):
         """데이터를 불러오고 메뉴를 반복 실행하며 입력 중단 시 종료 처리를 호출합니다."""
