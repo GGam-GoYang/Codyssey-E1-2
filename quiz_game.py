@@ -1,5 +1,6 @@
 import os
 import json
+import random
 from quiz import Quiz
 from quiz_recovery import DEFAULT_QUIZZES
 from input_utils import check_yes, input_text, input_number
@@ -10,8 +11,8 @@ from datetime import datetime
 class QuizGame():
     def __init__(self):
         """메뉴와 기능을 연결하고 게임 상태를 초기화합니다."""
-        self.menu_list = ["1. 퀴즈 풀기", "2. 퀴즈 추가", "3. 퀴즈 목록", "4. 점수 확인", "5. 퀴즈 종료"]
-        self.select = [self.start_quiz, self.add_quiz, self.list_quiz, self.check_score, self.exit_quiz]
+        self.menu_list = ["1. 퀴즈 풀기", "2. 퀴즈 풀기(랜덤)", "3. 퀴즈 추가", "4. 퀴즈 목록", "5. 점수 확인", "6. 퀴즈 종료"]
+        self.select = [self.start_quiz, lambda: self.start_quiz(shuffle=True), self.add_quiz, self.list_quiz, self.check_score, self.exit_quiz]
         self.has_played = False
         self.high_score = 0
         self.quiz_list = None
@@ -162,10 +163,10 @@ class QuizGame():
 
     def select_menu(self):
         """메뉴를 선택받아 연결된 기능을 실행합니다."""
-        inp = input_number("메뉴 선택", 1, 5) - 1
+        inp = input_number("메뉴 선택", 1, len(self.menu_list)) - 1
         self.select[inp]()
 
-    def start_quiz(self):
+    def start_quiz(self, shuffle=False):
         """퀴즈를 진행하고 완료 시 최고 점수를 갱신하여 저장을 시도합니다."""
         score = 0
 
@@ -174,8 +175,9 @@ class QuizGame():
             return
 
         print("퀴즈를 시작합니다.")
-
-        for i, quiz in enumerate(self.quiz_list, start=1):
+        play_quizzes = random.sample(self.quiz_list, len(self.quiz_list)) if shuffle else self.quiz_list
+        
+        for i, quiz in enumerate(play_quizzes, start=1):
             quiz.display(i)
 
             user_input = input_number("보기 선택", 1, 4)
