@@ -5,6 +5,16 @@ class Quiz():
         self.answer = answer
         self.source = source
 
+    @classmethod
+    def from_dict(cls, data):
+        """딕셔너리에서 퀴즈 객체를 생성합니다."""
+        return cls(
+            data["question"],
+            data["choices"],
+            data["answer"],
+            data["source"]
+        )
+    
     def display(self, idx):
         print("============ 문제 ============")
         print(f"문제 {idx} : {self.question}", end="\n\n")

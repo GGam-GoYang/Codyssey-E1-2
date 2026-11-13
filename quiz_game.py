@@ -15,7 +15,7 @@ class QuizGame():
     def recover_data(self):
         """최고 점수를 초기화하고 기본 퀴즈를 메모리에 복구합니다."""
         self.high_score = 0
-        self.quiz_list = [Quiz(item["question"], item["choices"], item["answer"], item["source"]) for item in DEFAULT_QUIZZES]
+        self.quiz_list = [Quiz.from_dict(item) for item in DEFAULT_QUIZZES]
                     
     def load_json(self):
         """저장 데이터를 불러오고, 처리 가능한 오류가 발생하면 기본 데이터로 복구합니다."""
@@ -32,7 +32,7 @@ class QuizGame():
                     raise ValueError("quizzes는 리스트여야 합니다.")
 
                 self.high_score = data.get("high_score", 0)
-                self.quiz_list = [Quiz(item["question"], item["choices"], item["answer"], item["source"]) for item in data["quizzes"]]
+                self.quiz_list = [Quiz.from_dict(item) for item in data["quizzes"]]
 
         except FileNotFoundError:
             print("데이터 파일이 없습니다. 기본 데이터를 불러옵니다.")
