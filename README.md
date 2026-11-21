@@ -14,6 +14,8 @@ Linux·Docker·Git을 복습하는 Python 콘솔 퀴즈 게임입니다. 문제 
 6. [클래스와 모듈 설계](#6-클래스와-모듈-설계)
 7. [실행 화면](#7-실행-화면)
 8. [Git 작업 이력](#8-git-작업-이력)
+9. [Git 저장소 복제 실습](#git-저장소-복제-실습)
+10.  [보너스 과제](#3-1-보너스-과제)
 
 ## 1. 프로젝트 개요와 주제
 
@@ -35,6 +37,8 @@ Linux·Docker·Git을 복습하는 Python 콘솔 퀴즈 게임입니다. 문제 
 - 개발 환경: Python 3.15.2, Git 2.56.0.windows.4
 - 실행 조건: Python 3.10 이상
 - 외부 패키지 설치 없이 Python 표준 라이브러리 사용
+
+![개발 환경](Evidence/dev_environment.png)
 
 ```powershell
 git clone https://github.com/GGam-GoYang/Codyssey-E1-2.git
@@ -76,10 +80,6 @@ python main.py
 - 끝까지 풀었다면 0점이어도 `has_played`를 `True`로 저장합니다. 처음 플레이하다 중단한 경우와 구분합니다.
 - 문제가 없으면 안내 후 메뉴로 돌아갑니다.
 
-### 랜덤 출제
-
-`random.sample()`로 플레이용 목록을 따로 만들어 원본 목록과 저장 순서를 유지합니다. 일반 출제와 랜덤 출제는 같은 진행 메서드를 사용하며, 랜덤 메뉴는 `lambda`를 통해 선택 시점에 실행합니다.
-
 ### 입력 검증
 
 | 입력 상황 | 처리 |
@@ -103,7 +103,10 @@ Codyssey-E1-2/
 ├── validators.py           # 저장 데이터 구조 검사
 ├── quiz_recovery.py        # 기본 퀴즈 5개
 ├── state.json              # 퀴즈·최고 점수·플레이 완료 여부
-├── Evidence/Quiz/          # 실행 화면 8장
+├── Evidence/
+│   ├── Quiz/               # 퀴즈 실행 화면 8장
+│   ├── Git/                # 커밋 그래프 2장·Pull 결과 1장
+│   └── dev_environment.png # 개발환경 확인
 ├── docs/
 │   ├── DESIGN.md           # 설계·예외 처리·복구
 │   ├── EXECUTION.md        # 실행 화면과 출력 기록
@@ -141,7 +144,7 @@ Codyssey-E1-2/
 | 오류 상황 | 처리 |
 |---|---|
 | 파일 없음 | 기본 문제·0점·미플레이 상태 생성 후 저장 시도 |
-| JSON 문법·인코딩·구조 오류 | 원본 백업 후 기본 데이터로 복구 |
+| JSON 문법·인코딩·구조 오류 | 원본 백업을 시도한 뒤 기본 데이터로 복구 |
 | 파일 읽기 오류 | 오류 안내, 백업 시도 후 기본 데이터로 진행 |
 | 백업 실패 | `save_blocked`로 이번 실행의 저장 차단 |
 | 저장·교체 실패 | 오류 안내, 종료 시 계속 종료할지 확인 |
@@ -218,9 +221,23 @@ Codyssey-E1-2/
 ```bash
 git log --oneline --graph
 ```
+![Git 커밋 그래프 상단](Evidence/Git/git_graph_01.png)
+![Git 커밋 그래프 하단](Evidence/Git/git_graph_02.png)
 
 [전체 커밋 그래프와 병합 이력](docs/GIT_HISTORY.md)
 
-## Git 저장소 복제 실습
+## 9. Git 저장소 복제 실습
 
-별도 폴더에 저장소를 복제하고, 복제본에서 README를 수정했습니다.
+별도 폴더에 저장소를 clone한 뒤 README를 수정하고 add, commit, push를 실행했습니다.
+기존 작업 폴더에서 pull하여 변경 사항을 반영했습니다.
+
+- 반영 방식: Fast-forward
+- 실습 완료 당시 양쪽 HEAD: `dcd388f197e4182d0891464ea382f355de2f0950`
+- 기존 폴더에서 README 변경 반영 확인
+
+![기존 저장소에서 Pull 및 커밋 확인](Evidence/Git/git_pull.png)
+
+## 보너스 과제
+### 랜덤 출제
+
+`random.sample()`로 플레이용 목록을 따로 만들어 원본 목록과 저장 순서를 유지합니다. 일반 출제와 랜덤 출제는 같은 진행 메서드를 사용하며, 랜덤 메뉴는 `lambda`를 통해 선택 시점에 실행합니다.
