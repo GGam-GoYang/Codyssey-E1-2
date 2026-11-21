@@ -203,3 +203,7 @@ git log --oneline --graph
 ```
 
 [전체 커밋 그래프와 병합 이력](docs/GIT_HISTORY.md)
+
+## Git 저장소 복제 실습
+
+별도 폴더에 저장소를 복제하고, 복제본에서 README를 수정했습니다.
