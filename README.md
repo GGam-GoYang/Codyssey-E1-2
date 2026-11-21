@@ -36,6 +36,8 @@ Linux·Docker·Git을 복습하는 Python 콘솔 퀴즈 게임입니다. 문제 
 - 실행 조건: Python 3.10 이상
 - 외부 패키지 설치 없이 Python 표준 라이브러리 사용
 
+![개발 환경](Evidence/dev_environment.png)
+
 ```powershell
 git clone https://github.com/GGam-GoYang/Codyssey-E1-2.git
 cd Codyssey-E1-2
@@ -141,7 +143,7 @@ Codyssey-E1-2/
 | 오류 상황 | 처리 |
 |---|---|
 | 파일 없음 | 기본 문제·0점·미플레이 상태 생성 후 저장 시도 |
-| JSON 문법·인코딩·구조 오류 | 원본 백업 후 기본 데이터로 복구 |
+| JSON 문법·인코딩·구조 오류 | 원본 백업을 시도한 뒤 기본 데이터로 복구 |
 | 파일 읽기 오류 | 오류 안내, 백업 시도 후 기본 데이터로 진행 |
 | 백업 실패 | `save_blocked`로 이번 실행의 저장 차단 |
 | 저장·교체 실패 | 오류 안내, 종료 시 계속 종료할지 확인 |
@@ -201,9 +203,18 @@ Codyssey-E1-2/
 ```bash
 git log --oneline --graph
 ```
+![Git 커밋 그래프 상단](Evidence/Git/git_graph_01.png)
+![Git 커밋 그래프 하단](Evidence/Git/git_graph_02.png)
 
 [전체 커밋 그래프와 병합 이력](docs/GIT_HISTORY.md)
 
 ## Git 저장소 복제 실습
 
-별도 폴더에 저장소를 복제하고, 복제본에서 README를 수정했습니다.
+별도 폴더에 저장소를 clone한 뒤 README를 수정하고 add, commit, push를 실행했습니다.
+기존 작업 폴더에서 pull하여 변경 사항을 반영했습니다.
+
+- 반영 방식: Fast-forward
+- 실습 완료 당시 양쪽 HEAD: `dcd388f197e4182d0891464ea382f355de2f0950`
+- 기존 폴더에서 README 변경 반영 확인
+
+![기존 저장소에서 Pull 및 커밋 확인](Evidence/Git/git_pull.png)
